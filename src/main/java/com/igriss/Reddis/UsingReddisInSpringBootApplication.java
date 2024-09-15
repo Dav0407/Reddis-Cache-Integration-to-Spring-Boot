@@ -9,15 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 @RequiredArgsConstructor
@@ -38,11 +35,4 @@ public class UsingReddisInSpringBootApplication {
             postRepository.saveAll(posts);
         };
     }
-
-    @CacheEvict(value = "posts", allEntries = true)
-    @Scheduled(initialDelay = 8, fixedDelay = 4, timeUnit = TimeUnit.SECONDS)
-    public void deleteAllCachedPosts() {
-        log.info("All Entries of posts cache is Flushing");
-    }
-
 }

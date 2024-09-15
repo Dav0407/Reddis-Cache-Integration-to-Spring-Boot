@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -13,7 +15,7 @@ import lombok.*;
 @Builder
 @ToString
 @Entity
-public class Post {
+public class Post implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

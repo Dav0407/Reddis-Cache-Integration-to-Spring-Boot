@@ -13,3 +13,10 @@ spring:
         format_sql: true
       database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  cache:
+    redis:
+      time-to-live: 10m
+  data:
+    redis:
+      host: localhost
+      port: 6379
