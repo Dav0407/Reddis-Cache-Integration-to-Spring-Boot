@@ -5,27 +5,23 @@ import com.igriss.Reddis.dto.PostUpdateDto;
 import com.igriss.Reddis.entity.Post;
 import com.igriss.Reddis.repository.PostRepository;
 import lombok.SneakyThrows;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final Cache cache;
 
-    public PostServiceImpl(PostRepository postRepository, CacheManager cacheManager) {
+    public PostServiceImpl(PostRepository postRepository) {
         this.postRepository = postRepository;
-        this.cache = cacheManager.getCache("posts");
     }
-
-
-
-
 
     @Override
     @Transactional
@@ -35,30 +31,32 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @SneakyThrows
+    @Cacheable(value = "posts", key = "#id")
     public Post get(Integer id) {
-        Post cachedPost = cache.get(id, Post.class);
-        if (cachedPost != null)
-            return cachedPost;
-
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         TimeUnit.SECONDS.sleep(2);
-        cache.put(id, post);
         return post;
     }
 
     @Override
+    @CacheEvict(value = "posts", key = "#id")
     public void delete(Integer id) {
         postRepository.deleteById(id);
-        cache.evict(id); // delete from cache
     }
 
     @Override
-    public void update(PostUpdateDto dto) {
+    @CachePut(value = "posts", key = "#dto.id")
+    public Post update(PostUpdateDto dto) {
         Post post = get(dto.getId());
         post.setTitle(dto.getTitle());
         post.setBody(dto.getBody());
-        postRepository.save(post);
-        cache.put(dto.getId(), post);
+        return postRepository.save(post);
+    }
+
+    @Override
+    @Cacheable(value = "posts", key = "#root.methodName")
+    public List<Post> getAll() {
+        return postRepository.findAll();
     }
 }

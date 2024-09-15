@@ -5,20 +5,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.igriss.Reddis.entity.Post;
 import com.igriss.Reddis.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 @RequiredArgsConstructor
 @EnableCaching
+@Slf4j
+@EnableScheduling
 public class UsingReddisInSpringBootApplication {
 
     public static void main(String[] args) {
@@ -34,11 +39,10 @@ public class UsingReddisInSpringBootApplication {
         };
     }
 
-    @Bean
-    public CacheManager cacheManager() {
-        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-        cacheManager.setCacheNames(List.of("posts"));
-        return cacheManager;
+    @CacheEvict(value = "posts", allEntries = true)
+    @Scheduled(initialDelay = 8, fixedDelay = 4, timeUnit = TimeUnit.SECONDS)
+    public void deleteAllCachedPosts() {
+        log.info("All Entries of posts cache is Flushing");
     }
 
 }
